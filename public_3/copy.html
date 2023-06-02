@@ -1,0 +1,216 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rajan Chat</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+    </script>
+    <style>
+        .group_message {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            width: 600px;
+            height: auto;
+            background-color: blueviolet;
+            color: white;
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="first_">
+        <input type="text" id="userId">
+        <button onclick="joinRoom()">Join</button>
+    </div>
+    <div id="second_">
+        <h1 style="color: royalblue ; text-align: center;">Chat App</h1>
+        <!-- <input type="text" id="recipientId" placeholder="Recipient's User ID">
+        <input type="text" id="messageInput" placeholder="Type your message">
+        <button onclick="sendMessage()">Send</button> -->
+
+        <!-- <ul id="messageList"></ul>
+        <div id="group_message">
+            <input type="text" name="" id="group_id" placeholder="group id">
+        <input type="text" name="" id="group_msg"  placeholder="group message">
+        <button onclick="sendinGroup()">Send</button>
+        </div>
+
+    </div> -->
+    <!-- <script>
+        document.getElementById('second_').style.display = 'none';
+        socket.on('joininfo', (data)=>{
+            console.log("joininfo", data);
+            document.getElementById('first_').style.display = 'none';
+            document.getElementById('second_').style.display = 'flex';
+
+        });
+        socket.on('forall' ,(data)=> {
+            
+            console.log(data , "new user is come");
+        });
+        socket.on('privateMessage', (data) => {
+            const { senderId, message } = data;
+            const listItem = document.createElement('li');
+            listItem.textContent = `From: ${senderId}, Message: ${message}`;
+            document.getElementById('messageList').appendChild(listItem);
+        });
+        socket.on('privategroup', (data) => {
+            const { senderId, message } = data;
+            const listItem = document.createElement('p');
+            listItem.textContent = `From: ${senderId}, Message: ${message}`;
+            document.getElementById('group_message').appendChild(listItem);
+            console.log("someone send message frontend" , senderId , message);
+        });
+        function sendinGroup() {
+            const groupId = document.getElementById('group_id').value;
+            const message = document.getElementById('group_msg').value;
+                  console.log(typeof groupId)
+            socket.emit('privategroup', {
+                groupId: groupId,
+                message: message
+            });
+             console.log("message sent" , groupId , message);
+            // Clear input field
+            document.getElementById('group_msg').value = '';
+            console.log("message try to send", message);
+        }
+
+        function sendMessage() {
+            //const userId = document.getElementById('userId').value;
+            const recipientId = document.getElementById('recipientId').value;
+            const message = document.getElementById('messageInput').value;
+
+            socket.emit('privateMessage', {
+                recipientId: recipientId,
+                message: message
+            });
+
+            // Clear input field
+            document.getElementById('messageInput').value = '';
+        }
+        function joinRoom() {
+            const userId = document.getElementById('userId').value;
+            console.log("user click for join room with user id is ", userId);
+            socket.emit('join', userId);
+        }
+
+    // Join the room when the page loads
+  //  window.addEventListener('load', joinRoom);
+    </script> -->
+<!-- </body>
+
+</html> -->
+
+
+<!-- 
+
+let express = require('express');
+let app = express();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+let fs = require('fs');
+//require('./db/dbconnection');
+require('dotenv').config();
+const port  = process.env.port ;
+// const { User } = require('./model/user.model');
+// const { Message } = require('./model/msg.model');
+
+ 
+app.use(express.urlencoded({
+    extended: true
+})); 
+app.use(express.json());
+app.use(express.static('public_3'));  
+
+io.use((socket , next)=> {
+
+console.log(socket.id);
+
+    next();
+});
+
+// Handle socket connection
+io.on('connection', (socket) => {
+  
+//starting point of any person
+  socket.on('join', (userId) => {
+    // Store the user ID in the socket object for future reference
+    socket.userId = userId;
+    console.log(`User ${userId} joined`);
+    let groupId = '12345';
+    let groupId2 = '123456';
+    socket.groupId = groupId;
+    socket.groupId2 =  groupId2 ;
+
+
+    // Join a room based on t;he user ID
+    socket.join(userId);
+    socket.join(groupId);
+    socket.join(groupId2);
+    socket.emit('joininfo', "user is join successfully with user id"+ socket.userId);
+    console.log(socket.userId + " some one join ");
+    io.emit('forall' ,"someone join the room " + userId);
+    
+  });
+
+  socket.on('privateMessage', (data) => {
+    const { recipientId, message } = data;
+
+    // Find the recipient socket by their user ID
+    const recipientSocket = io.sockets.in(recipientId);
+
+    if (recipientSocket) {
+      // Send the private message to the recipient
+      recipientSocket.emit('privateMessage', {
+        senderId: socket.userId,
+        message: message 
+      });
+    }
+  });  
+  socket.on('privategroup', (data)=>{
+    console.log("data come in private section");
+    console.log("group id");
+    console.log(data.groupId);
+    
+      const { groupId , message } = data ;
+      console.log(typeof groupId);
+  //   const groupSocket = io.socket.in('12345');
+      io.to(groupId).emit('privategroup' , {
+        senderId: socket.userId,
+         message: message
+      });
+      console.log("emit event ");
+
+     
+  });
+    
+    
+  // Handle socket disconnection
+  socket.on('disconnect', () => {
+    console.log('A user disconnected');
+  });
+});
+
+
+
+
+
+
+http.listen(port, function(){ 
+    console.log(`server live on ${port} `); 
+ });  
+ 
+  
+        
+
+
+
+ -->

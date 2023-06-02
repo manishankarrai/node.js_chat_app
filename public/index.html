@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+   <title>Hello world</title>
+</head>
+<script src="/socket.io/socket.io.js"></script>
+<link rel="stylesheet" href="style.css">
+
+<body>
+
+   <div class="login-container" id="user_name_box">
+      <h2>Welcome </h2>
+      <div id="error-container" style="color: red"></div>
+
+      <div class="input-group">
+         <label for="username">Username</label>
+         <input type="text" id="name" placeholder="Enter your username">
+      </div>
+
+      <button type="submit" onclick="setUsername()">Enter</button>
+   </div>
+
+
+
+
+
+
+   <!-- <div id="error-container"></div>
+      <input id="name" type="text" name="name" value="" placeholder="Enter your name!">
+      <button type="button" name="button" onclick="setUsername()">Let me chat!</button>
+      <a href="auth.html" target="_self"> Login</a> -->
+
+   <div class="chat-container" id="chat_box">
+      <div class="chat-header">
+         <h3>Chat Application </h3>
+         <h4 id="usern"></h4>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+         <div id="check_number">
+            <!-- <div id="message-container" style="text-align: left; color: blueviolet;"></div>
+            <div id="message-containerUser" style="text-align: right; color: brown;"></div> -->
+         </div>
+
+      </div>
+      <div class="chat-input">
+         <input type="text" id="message" placeholder="Type your message...">
+         <input type="file" id="myfile" *image>
+
+         <button id="send_button" onclick="sendMessage()">Send</button>
+      </div>
+   </div>
+
+ 
+
+   <script>
+      document.getElementById('chat_box').style.display = 'none';
+      var socket = io();
+      function setUsername() {
+         socket.emit('setUsername', document.getElementById('name').value);
+      };
+      var user;
+      var message_num;
+      socket.on('userExists', function (data) {
+         document.getElementById('error-container').innerHTML = data;
+      });
+      socket.on('userSet', function (data) {
+         user = data.username;
+         //   document.body.innerHTML = '<input type="text" id="message">\
+         //   <button type="button" name="button" onclick="sendMessage()">Send</button>\
+         //   <div id="message-container"></div>';
+         document.getElementById('user_name_box').style.display = 'none';
+         document.getElementById('chat_box').style.display = 'block';
+         document.getElementById('usern').innerHTML = 'Welcome &nbsp' + data.username;
+      });
+      function sendMessage() {
+         var msg = document.getElementById('message').value;
+         var myfiles = document.getElementById('myfile').files[0];
+         if (myfiles) {
+            console.log("file send from front");
+
+            // Emit the file data to the server
+            socket.emit('fileUpload', { fileName: myfiles.name, filedata: myfiles, user: user });
+            console.log('file name', myfiles.name);
+            console.log(myfiles);
+            document.getElementById('myfile').value = null;
+
+         }
+
+         if (msg) {
+            socket.emit('msg', { message: msg, user: user });
+         }
+         document.getElementById('message').value = '';
+      }
+      socket.on('newmsg', function (data) {
+
+         if (user === data.user) {
+
+            //   document.getElementById('message-containerUser').innerHTML += '<div>' + data.message + '</div>';
+            const el = document.createElement('div');
+
+            el.classList.add('message-containerUser');
+            el.style.textAlign = 'right';
+            el.style.color = 'brown';
+
+            el.innerHTML = data.message;
+            const box = document.getElementById('check_number');
+            box.appendChild(el);
+         } else {
+            //  document.getElementById('message-container').innerHTML += '<div><b>' + data.user + '</b>: ' + data.message + '</div>'
+            const el = document.createElement('div');
+
+            el.classList.add('message-container');
+            el.style.textAlign = 'left';
+            el.style.color = 'blue';
+            el.innerHTML = '<b style="color: black">' + data.user + '</b>:' + data.message;
+            const box = document.getElementById('check_number');
+            box.appendChild(el);
+         }
+      });
+      socket.on('filedata', function (data) {
+         
+         console.log('1st');
+         const now = new Date();
+         const currentHour = now.getHours() > 12 ? now.getHours()-12 : now.getHours() ;
+         const currentMinute = now.getMinutes();
+         let timeUp = now.getHours() > 12 ? 'Pm' : 'Am';
+
+        var current_time = `${currentHour}:${currentMinute}  ${timeUp}`;
+           console.log('2nd');
+         if (data.imgbool) {
+            if (user == data.user) {
+               console.log('user img ');
+               const link = document.createElement('a');
+
+               link.setAttribute('href', data.imglink);
+
+               // Set the download attribute to specify the downloaded file name
+               link.setAttribute('download', data.imgname);
+
+               const el = document.createElement('img');
+
+               el.classList.add('data_preview');
+               // el.style.position = 'absolute';
+               // el.style.right = '0';
+               el.style.width = '180px';
+               el.style.height = '180px';
+               el.style.paddingLeft = '300px'
+               el.setAttribute('src', data.imglink);
+               link.appendChild(el);
+              let p_space = document.createElement('p');
+               p_space.style.color = '#8a0c47';
+               p_space.style.fontSize = '10px';
+               p_space.style.textAlign = 'right';
+               p_space.innerHTML =  current_time;
+               const box = document.getElementById('check_number');
+               box.appendChild(link);
+              box.appendChild(p_space);
+            } else {
+               console.log(' another user img ');
+
+               const link = document.createElement('a');
+               const username = document.createElement('p');
+               username.innerHTML = '<b>  ' + data.user + ' </b>';
+               link.setAttribute('href', data.imglink);
+
+               // Set the download attribute to specify the downloaded file name
+               link.setAttribute('download', data.imgname);
+
+               const el = document.createElement('img');
+
+               el.classList.add('data_preview');
+               // el.style.position = 'absolute';
+               // el.style.right = '0';
+               el.style.width = '180px';
+               el.style.height = '180px';
+              let p_space = document.createElement('p');
+               p_space.style.color = '#8a0c47';
+               p_space.style.fontSize = '10px';
+               p_space.style.paddingLeft = '90px';
+               p_space.innerHTML = current_time;   
+                
+                el.setAttribute('src', data.imglink);
+               link.appendChild(el);
+               const box = document.getElementById('check_number');
+               box.appendChild(username);
+               box.appendChild(link);
+              box.appendChild(p_space);
+
+
+            }
+
+         } else {
+            if (user == data.user) {
+               const link = document.createElement('a');
+               // let p_space = document.createElement('p');
+               // p_space.style.color = '#8a0c47';
+               // p_space.style.fontSize = '10px';
+               // p_space.style.textAlign = 'right';
+               // p_space.innerHTML = current_time;              
+                link.setAttribute('href', data.imglink);
+
+               // Set the download attribute to specify the downloaded file name
+               link.setAttribute('download', 'downloaded' + data.imgname);
+               link.innerHTML = '<b style="color: black;"> File:  </b>  ' + data.imgname;
+               link.style.paddingLeft = '200px';
+               link.style.cursor = 'pointer';
+               link.style.color = '#f73636';
+
+
+               // el.style.position = 'absolute';
+               // el.style.right = '0';
+
+               const box = document.getElementById('check_number');
+               box.appendChild(link);
+             //  box.appendChild(p_space);
+            } else {
+               const link = document.createElement('a');
+
+               link.setAttribute('href', data.imglink);
+
+               // Set the download attribute to specify the downloaded file name
+               link.setAttribute('download', 'downloaded' + data.imgname);
+               link.innerHTML = '<b style="color: black;"> File:  </b>  ' + data.imgname;
+               link.style.cursor = 'pointer';
+               link.style.color = '#1ffc1f';
+               const username = document.createElement('p');
+               username.innerHTML = '<b>  ' + data.user + ' </b> <br>';
+               // el.style.position = 'absolute';
+               // el.style.right = '0';
+               // let p_space = document.createElement('p');
+               // p_space.style.color = '#8a0c47';
+               // p_space.style.fontSize = '10px';
+               // p_space.style.paddingLeft = '90px';
+               // p_space.innerHTML = current_time;    
+               const box = document.getElementById('check_number');
+               box.appendChild(username);
+               box.appendChild(link);
+            //   box.appendChild(p_space);
+            }
+         }
+
+      });
+
+   
+   </script>
+</body>
+
+</html>

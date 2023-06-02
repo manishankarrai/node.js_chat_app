@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>chating </title>
+</head>
+<script src="/socket.io/socket.io.js"></script>
+<link rel="stylesheet" href="style.css">
+
+<body>
+
+
+
+    <div class="home_start">
+        <div class="left_menu" id="left_menu_1">
+            <div class="user" style="background-color: brown; padding: 5px; ">
+                 <p id="user_profile"></p>
+            </div>
+            
+        </div>
+        <div class="main_body">
+            <div class="login" id="auth_user">
+                <input type="text" id="username" placeholder="user name" />
+                <input type="text" id="password" placeholder="password" />
+                <button onclick="login()">submit</button>
+            </div>
+
+            <div class="container" id="chat_box_full">
+                <div class="messages" id="messages">
+                    <!-- Chat messages will be dynamically added here -->
+                </div>
+                <div class="input-container">
+                    <input type="text" id="messageInput" placeholder="Type your message" />
+                    <button id="sendButton">Send</button>
+                </div>
+            </div>
+
+
+
+
+
+
+
+
+
+
+        </div>
+    </div>
+
+
+    <!-- script tag start from here -->
+    <script>
+        var socket = io();
+        var user ;
+        socket.on('conn' , function(data){
+            console.log(data);
+        });
+        
+ 
+       let auth_id =   document.getElementById('auth_user');
+       let chat_box_id =  document.getElementById('chat_box_full');
+       chat_box_id.style.display = 'none';
+          //upload all contact in left side
+            function clickonvalue(name , id) {
+                console.log('yes its click');
+                console.log(name , id);
+            }
+          function upload_contact(data) {      
+          let c_length = data.user_contact.length ;
+            console.log("length of contact is ",data.user_contact.length)
+         //   let leftmenu = document.getElementById('left_menu_1');
+           for(let i=0 ; i < c_length ; i++) {
+            let leftmenu = document.getElementById('left_menu_1');
+            const contactElement = document.createElement('div');
+            contactElement.classList.add('user');
+            contactElement.innerHTML = `
+          <p 
+          >${data.user_contact[i].usercontact}</p>   `; 
+         // id=${data.username} onclick=${clickonvalue(data.user_contact[i].usercontact , data.user_contact[i].usercontact_id)}
+        
+          leftmenu.appendChild(contactElement);
+           
+           } 
+         }
+
+        function login() {
+            let user_name = document.getElementById('username');
+            let user_pass = document.getElementById('password');
+              let userdata = {
+                username: user_name.value ,
+                password: user_pass.vlaue ,
+              }
+            // Make a POST request to the server
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/userlogin', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify(userdata));
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText); 
+                     console.log("user login responce come from api ",response);
+                     user  =  response ;
+                    auth_id.style.display = "none";
+                   chat_box_id.style.display = 'flex';
+                   document.getElementById('user_profile').innerHTML = `<b> User: </b> ${user.username} `;
+                   user_name.value = '';
+                   user_pass.vlaue = '';
+                   upload_contact(response);
+                } else {
+                  console.log("user data not come ");
+                }
+            };
+
+            xhr.onerror = function () {
+                console.error('Error submitting form');
+            };
+        
+        }
+     
+
+
+        let user1 = {
+            id: "647453ddbe0ce4220af9af94",
+            username: "user",
+            password: "123"
+        }
+        let user2 = {
+            id: "64747f1a9291561d32a45e32",
+            username: "rajan",
+            password: "123"
+        }
+        let admin = {
+            id: "64745a6c1519dfd80be9e34b",
+            username: "admin",
+            password: "123"
+        }
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        function addMessage(sender, content) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.innerHTML = `
+          <div class="sender">${sender}</div>
+          <div class="content">${content}</div>
+        `;
+            messagesContainer.appendChild(messageElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        sendButton.addEventListener('click', () => {
+            const message = messageInput.value;
+            if (message.trim() !== '') {
+                let data = {
+                    sender_id: user._id,
+                    sender_name: user.username,
+                    receiver_id: user2.id,
+                    message: message,
+                    value: false
+                }
+                //  addMessage(myuser.username, message);
+                // Send the message to the server or perform any other necessary action
+                messageInput.value = '';
+                console.log("receive id",data.receiver_id);
+                socket.emit('usermessage', data);
+            }
+        });
+        socket.on('receiver_id', (data) => {
+           // console.log("my user id is " , user._id);
+            addMessage(data.sender_name, data.message);
+            //    data.value = true ;
+            //   socket.emit('messagevalue' , data);
+        });
+      
+        // Simulating receiving a message from the server
+        setTimeout(() => {
+            addMessage('Friend', 'Hello! How are you?');
+        }, 2000);
+    </script>
+    <!-- <script>
+        document.getElementById('chat_box').style.display = 'none';
+        function setUsername() {
+            socket.emit('setUsername', document.getElementById('name').value);
+        };
+        var user;
+        var message_num;
+        socket.on('userExists', function (data) {
+            document.getElementById('error-container').innerHTML = data;
+        });
+        socket.on('userSet', function (data) {
+            user = data.username;
+            //   document.body.innerHTML = '<input type="text" id="message">\
+            //   <button type="button" name="button" onclick="sendMessage()">Send</button>\
+            //   <div id="message-container"></div>';
+            document.getElementById('user_name_box').style.display = 'none';
+            document.getElementById('chat_box').style.display = 'block';
+            document.getElementById('usern').innerHTML = 'Welcome &nbsp' + data.username;
+        });
+        function sendMessage() {
+            var msg = document.getElementById('message').value;
+            var myfiles = document.getElementById('myfile').files[0];
+            if (myfiles) {
+                console.log("file send from front");
+
+                // Emit the file data to the server
+                socket.emit('fileUpload', { fileName: myfiles.name, filedata: myfiles, user: user });
+                console.log('file name', myfiles.name);
+                console.log(myfiles);
+                document.getElementById('myfile').value = null;
+
+            }
+
+            if (msg) {
+                socket.emit('msg', { message: msg, user: user });
+            }
+            document.getElementById('message').value = '';
+        }
+        socket.on('newmsg', function (data) {
+
+            if (user === data.user) {
+
+                //   document.getElementById('message-containerUser').innerHTML += '<div>' + data.message + '</div>';
+                const el = document.createElement('div');
+
+                el.classList.add('message-containerUser');
+                el.style.textAlign = 'right';
+                el.style.color = 'brown';
+
+                el.innerHTML = data.message;
+                const box = document.getElementById('check_number');
+                box.appendChild(el);
+            } else {
+                //  document.getElementById('message-container').innerHTML += '<div><b>' + data.user + '</b>: ' + data.message + '</div>'
+                const el = document.createElement('div');
+
+                el.classList.add('message-container');
+                el.style.textAlign = 'left';
+                el.style.color = 'blue';
+                el.innerHTML = '<b style="color: black">' + data.user + '</b>:' + data.message;
+                const box = document.getElementById('check_number');
+                box.appendChild(el);
+            }
+        });
+        socket.on('filedata', function (data) {
+
+            console.log('1st');
+            const now = new Date();
+            const currentHour = now.getHours() > 12 ? now.getHours() - 12 : now.getHours();
+            const currentMinute = now.getMinutes();
+            let timeUp = now.getHours() > 12 ? 'Pm' : 'Am';
+
+            var current_time = `${currentHour}:${currentMinute}  ${timeUp}`;
+            console.log('2nd');
+            if (data.imgbool) {
+                if (user == data.user) {
+                    console.log('user img ');
+                    const link = document.createElement('a');
+
+                    link.setAttribute('href', data.imglink);
+
+                    // Set the download attribute to specify the downloaded file name
+                    link.setAttribute('download', data.imgname);
+
+                    const el = document.createElement('img');
+
+                    el.classList.add('data_preview');
+                    // el.style.position = 'absolute';
+                    // el.style.right = '0';
+                    el.style.width = '180px';
+                    el.style.height = '180px';
+                    el.style.paddingLeft = '300px'
+                    el.setAttribute('src', data.imglink);
+                    link.appendChild(el);
+                    let p_space = document.createElement('p');
+                    p_space.style.color = '#8a0c47';
+                    p_space.style.fontSize = '10px';
+                    p_space.style.textAlign = 'right';
+                    p_space.innerHTML = current_time;
+                    const box = document.getElementById('check_number');
+                    box.appendChild(link);
+                    box.appendChild(p_space);
+                } else {
+                    console.log(' another user img ');
+
+                    const link = document.createElement('a');
+                    const username = document.createElement('p');
+                    username.innerHTML = '<b>  ' + data.user + ' </b>';
+                    link.setAttribute('href', data.imglink);
+
+                    // Set the download attribute to specify the downloaded file name
+                    link.setAttribute('download', data.imgname);
+
+                    const el = document.createElement('img');
+
+                    el.classList.add('data_preview');
+                    // el.style.position = 'absolute';
+                    // el.style.right = '0';
+                    el.style.width = '180px';
+                    el.style.height = '180px';
+                    let p_space = document.createElement('p');
+                    p_space.style.color = '#8a0c47';
+                    p_space.style.fontSize = '10px';
+                    p_space.style.paddingLeft = '90px';
+                    p_space.innerHTML = current_time;
+
+                    el.setAttribute('src', data.imglink);
+                    link.appendChild(el);
+                    const box = document.getElementById('check_number');
+                    box.appendChild(username);
+                    box.appendChild(link);
+                    box.appendChild(p_space);
+
+
+                }
+
+            } else {
+                if (user == data.user) {
+                    const link = document.createElement('a');
+                    // let p_space = document.createElement('p');
+                    // p_space.style.color = '#8a0c47';
+                    // p_space.style.fontSize = '10px';
+                    // p_space.style.textAlign = 'right';
+                    // p_space.innerHTML = current_time;              
+                    link.setAttribute('href', data.imglink);
+
+                    // Set the download attribute to specify the downloaded file name
+                    link.setAttribute('download', 'downloaded' + data.imgname);
+                    link.innerHTML = '<b style="color: black;"> File:  </b>  ' + data.imgname;
+                    link.style.paddingLeft = '200px';
+                    link.style.cursor = 'pointer';
+                    link.style.color = '#f73636';
+
+
+                    // el.style.position = 'absolute';
+                    // el.style.right = '0';
+
+                    const box = document.getElementById('check_number');
+                    box.appendChild(link);
+                    //  box.appendChild(p_space);
+                } else {
+                    const link = document.createElement('a');
+
+                    link.setAttribute('href', data.imglink);
+
+                    // Set the download attribute to specify the downloaded file name
+                    link.setAttribute('download', 'downloaded' + data.imgname);
+                    link.innerHTML = '<b style="color: black;"> File:  </b>  ' + data.imgname;
+                    link.style.cursor = 'pointer';
+                    link.style.color = '#1ffc1f';
+                    const username = document.createElement('p');
+                    username.innerHTML = '<b>  ' + data.user + ' </b> <br>';
+                    // el.style.position = 'absolute';
+                    // el.style.right = '0';
+                    // let p_space = document.createElement('p');
+                    // p_space.style.color = '#8a0c47';
+                    // p_space.style.fontSize = '10px';
+                    // p_space.style.paddingLeft = '90px';
+                    // p_space.innerHTML = current_time;    
+                    const box = document.getElementById('check_number');
+                    box.appendChild(username);
+                    box.appendChild(link);
+                    //   box.appendChild(p_space);
+                }
+            }
+
+        });
+
+
+    </script> -->
+    <script>
+        (()=> {
+            let socketId = socket.id ;
+         console.log("socket id",socketId);
+        })();
+    </script>
+</body>
+
+</html>
